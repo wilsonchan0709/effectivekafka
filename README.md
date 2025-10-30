@@ -5,7 +5,7 @@ This is the repository accompanying [Effective Kafka](https://apachekafkabook.co
 <a href="https://apachekafkabook.com"><img src="https://www.apachekafkabook.com/hero2x.jpeg" width="50%" alt="Effective Kafka cover"/></a>
 
 
-## chapter 5
+## Chapter 5
 
 create a topic
 ```
@@ -135,6 +135,58 @@ kafka-consumer-groups \
 --describe --all-groups --state
 ```
 
-Resetting offsets
-
+### Resetting offsets
+```
+kafka-consumer-groups \
+--bootstrap-server localhost:9092 \
+--topic getting-started --group cli-consumer \
+--reset-offsets --to-earliest --execute
+```
+- it would reset the offsets to the earliest so that you can consumer earliest records
 delete consumer group
+
+```
+kafka-consumer-groups \
+--bootstrap-server localhost:9092 \
+--topic getting-started:0,1 --group cli-consumer \
+--reset-offsets --to-offset 2 --execute
+```
+- this reset command is performed on a subset of the topic's partitions.
+- it only reset the partitions 0 and 1
+
+```
+kafka-consumer-groups \
+--bootstrap-server localhost:9092 \
+--topic getting-started:2 --group cli-consumer \
+--reset-offsets --to-datetime 2020-01-27T14:35:54.528+11:00 \
+--execute
+```
+- it reset the offsets based on specific datetime
+
+### Deleting offsets
+- remove tracking information telling consumers where they left off reading a topic
+- remove the committed offeset for consumer groups from kafka's internal storage
+- doesn't remove any records
+```
+kafka-consumer-groups \
+--bootstrap-server localhost:9092 \
+--topic getting-started --group cli-consumer --delete-offsets
+```
+
+### Deleting consumer groups
+- remove the consumer group's metadata and committed offesets from kafka interal storage
+- Deleting the consumer group is equivalent to deleting offsets for all topics and all partitions
+- doesn't remove any records
+```
+kafka-consumer-groups \
+--bootstrap-server localhost:9092 \
+--group cli-consumer --delete  
+```
+
+### Using Java library
+```
+# you may change java version from bash_profile
+source ~/.bash_profile
+brew install gradle@7
+cd /opt/git/wilsonchan0709/effectivekafka
+```

@@ -1,75 +1,84 @@
 plugins {
+  id 'java' // Apply the Java plugin for this project
 }
 
+// JVM arguments for module accessibility
 def baseJvmArgs = [
-  "--add-opens=java.base/java.io=ALL-UNNAMED",
-  "--add-opens=java.base/java.lang=ALL-UNNAMED",
-  "--add-opens=java.base/java.lang.invoke=ALL-UNNAMED",
-  "--add-opens=java.base/java.lang.reflect=ALL-UNNAMED",
-  "--add-opens=java.base/java.nio=ALL-UNNAMED",
-  "--add-opens=java.base/java.nio.charset=ALL-UNNAMED",
-  "--add-opens=java.base/java.util.concurrent.atomic=ALL-UNNAMED",
-  "--add-opens=java.base/sun.nio.ch=ALL-UNNAMED",
-  "-Djava.net.preferIPv4Stack=true"
+        "--add-opens=java.base/java.io=ALL-UNNAMED",
+        "--add-opens=java.base/java.lang=ALL-UNNAMED",
+        "--add-opens=java.base/java.lang.invoke=ALL-UNNAMED",
+        "--add-opens=java.base/java.lang.reflect=ALL-UNNAMED",
+        "--add-opens=java.base/java.nio=ALL-UNNAMED",
+        "--add-opens=java.base/java.nio.charset=ALL-UNNAMED",
+        "--add-opens=java.base/java.util.concurrent.atomic=ALL-UNNAMED",
+        "--add-opens=java.base/sun.nio.ch=ALL-UNNAMED",
+        "-Djava.net.preferIPv4Stack=true"
 ]
-project.ext.set("baseJvmArgs", baseJvmArgs)
+project.ext.set("baseJvmArgs", baseJvmArgs) // Set base JVM arguments as a project property
 
 allprojects {
-  apply plugin: "java"
-  
-  sourceCompatibility = 11 
-  targetCompatibility = 11
+  apply plugin: "java" // Apply the Java plugin to all subprojects
+
+  sourceCompatibility = 11 // Set the source compatibility to Java 11
+  targetCompatibility = 11 // Set the target compatibility to Java 11
 
   repositories {
-    jcenter()
-    maven {
-      url "https://oss.sonatype.org/content/repositories/snapshots"
-    }
+    mavenCentral() // Ensure Maven Central is included
+    jcenter() // Include JCenter to resolve fulcrum-worker
+    maven { url 'https://repo1.maven.org/maven2/' } // Additional Maven Central repository
   }
-  
+
   ext {
-    assertjVersion = "3.12.2"
-    fulcrumVersion = "0.36.0"
-    jacksonVersion = "2.9.9"
-    junitVersion = "4.12"
-    kafkaVersion = "2.4.0"
-    log4jVersion = "1.2.17"
-    slf4jVersion = "1.7.25"
+    assertjVersion = "3.12.2" // Version for AssertJ
+    fulcrumVersion = "0.37.0" // Use the version available in JCenter
+    jacksonVersion = "2.13.3" // Confirmed version of Jackson
+    junitVersion = "4.12" // Version for JUnit
+    kafkaVersion = "2.4.0" // Version for Kafka Clients
+    log4jVersion = "1.2.17" // Version for Log4j
+    slf4jVersion = "1.7.25" // Version for SLF4J
   }
-  
+
   dependencies {
-    implementation "org.slf4j:slf4j-api:${slf4jVersion}"
-    implementation "org.slf4j:slf4j-log4j12:${slf4jVersion}"
-    implementation "log4j:log4j:${log4jVersion}"
-    
-    testImplementation "org.assertj:assertj-core:${assertjVersion}"
-    testImplementation "junit:junit:${junitVersion}"
+    implementation "org.slf4j:slf4j-api:${slf4jVersion}" // SLF4J API for logging
+    implementation "org.slf4j:slf4j-log4j12:${slf4jVersion}" // SLF4J Log4j binding
+    implementation "log4j:log4j:${log4jVersion}" // Log4j for logging
+
+    // Kafka Clients dependency
+    implementation "org.apache.kafka:kafka-clients:${kafkaVersion}" // Kafka Clients
+
+    // Jackson dependencies
+    implementation "com.fasterxml.jackson.core:jackson-databind:${jacksonVersion}" // Jackson Databind
+    implementation "com.fasterxml.jackson.core:jackson-core:${jacksonVersion}" // Jackson Core
+    implementation "com.fasterxml.jackson.core:jackson-annotations:${jacksonVersion}" // Jackson Annotations
+    implementation "com.obsidiandynamics.fulcrum:fulcrum-worker:${fulcrumVersion}" // Fulcrum Worker
+
+    testImplementation "org.assertj:assertj-core:${assertjVersion}" // AssertJ for assertions in tests
+    testImplementation "junit:junit:${junitVersion}" // JUnit for unit testing
   }
-  
+
   compileJava {
-    options.compilerArgs += "-proc:none"
+    options.compilerArgs += "-proc:none" // Disable annotation processing
   }
 
   compileTestJava {
-    options.compilerArgs += "-proc:none"
+    options.compilerArgs += "-proc:none" // Disable annotation processing for test compilation
   }
-  
+
   tasks.withType(JavaCompile) {
-    options.fork = true
-    options.incremental = true
+    options.fork = true // Fork the compiler process
+    options.incremental = true // Enable incremental compilation
   }
 
   test {
-    jvmArgs += baseJvmArgs
+    jvmArgs += baseJvmArgs // Add base JVM arguments to the test task
   }
 }
 
 subprojects {
-}
-
-dependencies {
-  implementation "com.fasterxml.jackson.core:jackson-databind:${jacksonVersion}"
-  implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:${jacksonVersion}"
-  implementation "com.obsidiandynamics.fulcrum:fulcrum-worker:${fulcrumVersion}"
-  implementation "org.apache.kafka:kafka-clients:${kafkaVersion}"
+  dependencies {
+    implementation "com.fasterxml.jackson.core:jackson-databind:${jacksonVersion}" // Jackson for data binding
+    implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:${jacksonVersion}" // Jackson YAML support
+    implementation "com.obsidiandynamics.fulcrum:fulcrum-worker:${fulcrumVersion}" // Fulcrum Worker for asynchronous processing
+    implementation "org.apache.kafka:kafka-clients:${kafkaVersion}" // Kafka Clients for interacting with Kafka
+  }
 }
