@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:5.4.0
+    container_name: zookeeper
+    ports:
+      - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+
+  kafka:
+    image: confluentinc/cp-kafka:5.4.0
+    container_name: kafka
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_HOME: /usr/bin
+      # Ensure KAFKA_HOME is set
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
+      # Allow Kafka to listen on all network interfaces
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      # Use the container name for advertised listeners
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+    depends_on:
+      - zookeeper
+    volumes:
+      - ./scripts:/mnt/scripts
+      # Mount the local scripts directory to /mnt/scripts in the container
+
+  kafdrop:
+    image: obsidiandynamics/kafdrop:3.18.0
+    container_name: kafdrop
+    ports:
+      - "9000:9000"
+    environment:
+      KAFKA_BROKERCONNECT: kafka:9092
+      # Ensure the broker connection matches the advertised listener
+      JVM_OPTS: "-Xms32M -Xmx64M"
+    depends_on:
+      - kafka
